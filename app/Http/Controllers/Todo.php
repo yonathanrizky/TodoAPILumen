@@ -20,8 +20,8 @@ class Todo extends Controller
 
     public function index()
     {
-        $data = DB::select("SELECT id, activity, description from todo");
-        // $data = ModelTodo::all();
+        //$data = ModelTodo::all(); // get data all table menggunakan Eloquent ORM Laravel
+        $data = DB::select("SELECT id, activity, description from todo"); ## get data menggunakan Raw Query
         if($data){
             $data = 
             ['data' => [
@@ -38,32 +38,41 @@ class Todo extends Controller
         return response($data);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $data = ModelTodo::where('id',$id)->get();
-        
-        if($data){
-            $data = 
-            ['data' => [
-                'status' => 'true',
-                'data' => $data
-            ]];
+        $method = strtolower($request->method);
+        if($method){
+            return $this->$method($id);
         }else{
-            $data = 
-            ['data' => [
-                'status' => 'true',
-                'data' => 'Data Tidak Ada'
-            ]];
+            $data = DB::select("SELECT id, activity, description, filename from todo where id = '$id'");
+            if($data){
+                $data = 
+                ['data' => [
+                    'status' => 'true',
+                    'data' => $data
+                ]];
+            }else{
+                $data = 
+                ['data' => [
+                    'status' => 'true',
+                    'data' => 'Data Tidak Ada'
+                ]];
+            }
+            return response($data);
         }
-        return response($data);
     }
 
 
     public function store(Request $request)
     {
+        $resorce = $request->file('file');
+        $name = rand().$resorce->getClientOriginalName();
+        $resorce->move(\base_path() ."/public/file", $name);
+
         $data = new ModelTodo();
         $data->activity = $request->input('activity');
-        $data->description  = $request->input('description');
+        $data->description = $request->input('description');
+        $data->filename = $name;
         $data->save();
 
         return response(['data' => ['status' => 'true','msg' => 'Berhasil Menambah Data']]);
@@ -83,5 +92,12 @@ class Todo extends Controller
         $data->delete();
     
         return response(['data' => ['status' => 'true','msg' => 'Berhasil Menghapus Data']]);
+    }
+
+    public function download($id)
+    {
+        $data = DB::select("SELECT filename from todo where id = '$id'");
+        $response = response()->download(\base_path() ."/public/file/".$data[0]->filename);
+        return $response;
     }
 }

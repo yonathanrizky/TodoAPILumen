@@ -22,9 +22,9 @@ $router->get('/{controller}', function($controller){
 });
 
 ## Route get data by Id
-$router->get('/{controller}/{id}', function($controller, $id){
+$router->get('/{controller}/{id}', function(Request $request,$controller, $id){
     $controller = ucwords($controller);
-    return app('App\Http\Controllers\\'.$controller)->show($id);
+    return app('App\Http\Controllers\\'.$controller)->show($request, $id);
 });
 
 ## Route post data (create)
