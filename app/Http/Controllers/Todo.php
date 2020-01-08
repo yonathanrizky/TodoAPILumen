@@ -66,8 +66,13 @@ class Todo extends Controller
     public function store(Request $request)
     {
         $resorce = $request->file('file');
-        $name = rand().$resorce->getClientOriginalName();
-        $resorce->move(\base_path() ."/public/file", $name);
+        if($resorce){
+            $name = rand().$resorce->getClientOriginalName();
+            $resorce->move(\base_path() ."/public/file", $name);
+        }else{
+            $name = Null;
+        }
+        
 
         $data = new ModelTodo();
         $data->activity = $request->input('activity');
