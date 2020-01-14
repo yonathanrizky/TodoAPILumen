@@ -51,6 +51,15 @@ $router->group(
         ## Route post data (create)
         $router->post('/api/{controller}', function (Request $request, $controller) {
             $controller = ucwords($controller);
+            foreach ($request->input() as $key => $value) {
+                if (!preg_match('/^[a-z0-9\: ]+$/i', $value)) {
+                    $error = [
+                        'status' => '401',
+                        'error' => 'Disallowed Key Characters.'
+                    ];
+                    return response($error, 401);
+                }
+            }
             return app('App\Http\Controllers\\' . $controller)->store($request);
         });
     }
